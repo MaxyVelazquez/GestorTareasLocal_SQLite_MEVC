@@ -6,8 +6,9 @@ import '../data/validacion.dart';
 
 // Conserva las indicaciones TODO para orientar tu trabajo.
 class TareasPage extends StatefulWidget {
-  const TareasPage({super.key});
+  const TareasPage({super.key, this.database});
 
+  final AppDatabase? database;
   @override
   State<TareasPage> createState() => _TareasPageState();
 }
@@ -16,19 +17,21 @@ class _TareasPageState extends State<TareasPage> {
   final TextEditingController _tituloController = TextEditingController();
 
   late final AppDatabase _db;
+  late final bool _dbPropia;
   late final Stream<List<TareasDB>> _tareasStream;
 
   @override
   void initState() {
     super.initState();
-    _db = AppDatabase();
+    _dbPropia=widget.database==null;
+    _db = widget.database ?? AppDatabase();
     _tareasStream = _db.observarTareas();
   }
 
   @override
   void dispose() {
     _tituloController.dispose();
-    _db.close();
+    if(_dbPropia)_db.close();
     super.dispose();
   }
 

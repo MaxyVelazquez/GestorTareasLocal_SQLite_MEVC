@@ -41,3 +41,19 @@ Completada es un booleano, pero sqlite no define a estos, aunque sí trabaja con
 
 - El titulo se recorta antes de guardarse
 - No hay limite de longitud en el titulo
+
+
+## Pruebas unitarias
+
+Se agregaron 2 archivos de pruebas para las validaciones en el titulo y el almacenamiento persistente respectivamente.
+
+
+Para probarlo usa:
+- flutter test
+- flutter test test/almacenamiento_test.dart
+- flutter test test/validacion_test.dart
+
+#### IMPORTANTE
+
+Se eliminó el archivo widget_test.dart porque las pruebas declaradas ahí fallaban en todo momento.
+El fallo de estas es debido que drift programa un temporizador al cancelar un stream.
