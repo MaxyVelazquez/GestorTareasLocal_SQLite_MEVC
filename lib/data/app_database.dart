@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
 import 'tareas_table.dart';
+import 'validacion.dart';
 
 part 'app_database.g.dart';
 
@@ -21,10 +22,29 @@ class AppDatabase extends _$AppDatabase {
   }
 
   //Promesa de insersión
-  Future<int> insertarTarea(String titulo){
+  Future<int> insertarTarea(String titulo) async {
+    exigirTituloValido(titulo);
     return into(tareasTable).insert(
-      TareasTableCompanion.insert(titulo: titulo),
+      TareasTableCompanion.insert(titulo: normalizarTitulo(titulo)),
     );
+  }
+  //Promesa de actualización
+  Future <int> actualizarTitulo(int id, String titulo){
+    exigirTituloValido(titulo);
+    return (update(tareasTable)..where((t)=>t.id.equals(id))).write(
+      TareasTableCompanion(titulo: Value(normalizarTitulo(titulo))),
+    );
+  }
+  //Promesa de cambio de estado: completada
+  Future<int> cambiarEstado(int id, bool completada){
+    
+    return (update(tareasTable)..where((t)=> t.id.equals(id))).write(
+      TareasTableCompanion(isCompleted: Value(completada)),
+    );
+  }
+
+  Future<int> eliminarTarea(int id){
+    return(delete(tareasTable)..where((t)=> t.id.equals(id))).go();
   }
 
   static QueryExecutor _abrirConexion() {

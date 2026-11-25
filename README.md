@@ -36,3 +36,8 @@ El id es un entero autoincremental sencillo, para una plataforma de un usuario n
 El titulo es una cadena sencilla, se plantea hacer las validaciones necesarias como titulos vacíos o cadenas de espacios desde el código.
 
 Completada es un booleano, pero sqlite no define a estos, aunque sí trabaja con False/True. En este sentido usamos 0 para False indicando que no está completada y por defecto porque una tarea nueva nunca comienza completada. Se usa 1 para True.
+
+### VALIDACIONES
+
+- El titulo se recorta antes de guardarse
+- No hay limite de longitud en el titulo

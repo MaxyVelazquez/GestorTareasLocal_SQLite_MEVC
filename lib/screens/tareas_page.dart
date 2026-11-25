@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/tarea.dart';
 import '../data/app_database.dart';
-
+import '../data/validacion.dart';
 
 // Conserva las indicaciones TODO para orientar tu trabajo.
 class TareasPage extends StatefulWidget {
@@ -36,22 +36,48 @@ class _TareasPageState extends State<TareasPage> {
     try {
       await _db.insertarTarea(_tituloController.text);
       _tituloController.clear();
+    } on TituloInvalidoException catch (e) {
+      if (!mounted) return;
+      _pendiente(e.mensaje);
     } catch (e) {
       if (!mounted) return;
       _pendiente("No se pudo guardar la tarea: $e");
     }
   }
 
-  void _alternarCompletada(Tarea tarea, bool completada) {
-    _pendiente('Implementar actualización de tarea');
+  Future<void> _alternarCompletada(Tarea tarea, bool completada) async {
+    try {
+      await _db.cambiarEstado(tarea.id, completada);
+    } catch (e) {
+      if (!mounted) return;
+      _pendiente("No se pudo actualizar la tarea: $e");
+    }
   }
 
-  void _editarTarea(Tarea tarea) {
-    _pendiente('Implementar edición de título');
+  Future<void> _editarTarea(Tarea tarea) async {
+    final nuevoTitulo = await showDialog<String>(
+      context: context,
+      builder: (context) => _DialogoEditarTitulo(tituloInicial: tarea.titulo),
+    );
+    if (nuevoTitulo == null) return;
+    try {
+      await _db.actualizarTitulo(tarea.id, nuevoTitulo);
+    } on TituloInvalidoException catch (e) {
+      if (!mounted) return;
+      _pendiente(e.mensaje);
+    } catch (e) {
+      if (!mounted) return;
+      _pendiente("No se pudo actualizar la tarea: $e");
+    }
   }
 
-  void _eliminarTarea(Tarea tarea) {
-    _pendiente('Implementar eliminación de tarea');
+  Future<void> _eliminarTarea(Tarea tarea) async {
+    try {
+      await _db.eliminarTarea(tarea.id);
+    } catch (e) {
+      if (!mounted) return;
+      _pendiente("No se pudo eliminar la tarea: $e");
+    }
   }
 
   void _pendiente(String mensaje) {
@@ -153,6 +179,65 @@ class _TareasPageState extends State<TareasPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _DialogoEditarTitulo extends StatefulWidget {
+  const _DialogoEditarTitulo({required this.tituloInicial});
+
+  final String tituloInicial;
+
+  @override
+  State<_DialogoEditarTitulo> createState() => _DialogoEditarTituloState();
+}
+
+class _DialogoEditarTituloState extends State<_DialogoEditarTitulo> {
+  late final TextEditingController _controller;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.tituloInicial);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _guardar() {
+    final error = validarTitulo(_controller.text);
+    if (error != null) {
+      setState(() => _error = error);
+      return;
+    }
+    Navigator.of(context).pop(normalizarTitulo(_controller.text));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Editar tarea'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        decoration: InputDecoration(
+          labelText: 'Título',
+          errorText: _error,
+          border: const OutlineInputBorder(),
+        ),
+        onSubmitted: (_) => _guardar(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(onPressed: _guardar, child: const Text('Guardar')),
+      ],
     );
   }
 }
